@@ -1,0 +1,148 @@
+# ZSH_THEME_GIT_PROMPT_PREFIX="%{%B%F{green}%}"
+# ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
+# ZSH_THEME_GIT_PROMPT_DIRTY="%{%F{red}%}*%{$reset_color%}"
+# ZSH_THEME_GIT_PROMPT_CLEAN=" "
+
+# # get the name of the branch we are on
+# function git_prompt_info() {
+#   ref=$(git symbolic-ref HEAD 2> /dev/null) || return
+#   echo "$ZSH_THEME_GIT_PROMPT_PREFIX${ref#refs/heads/}$(parse_git_dirty)$ZSH_THEME_GIT_PROMPT_SUFFIX"
+# }
+
+# # Checks if working tree is dirty
+# parse_git_dirty() {
+#   if [[ -n $(git status -s --ignore-submodules=dirty 2> /dev/null) ]]; then
+#     echo "$ZSH_THEME_GIT_PROMPT_DIRTY"
+#   else
+#     echo "$ZSH_THEME_GIT_PROMPT_CLEAN"
+#   fi
+# }
+
+# # Checks if there are commits ahead from remote
+# function git_prompt_ahead() {
+#   if $(echo "$(git log origin/$(current_branch)..HEAD 2> /dev/null)" | grep '^commit' &> /dev/null); then
+#     echo "$ZSH_THEME_GIT_PROMPT_AHEAD"
+#   fi
+# }
+
+# # Formats prompt string for current git commit short SHA
+# function git_prompt_short_sha() {
+#   SHA=$(git rev-parse --short HEAD 2> /dev/null) && echo "$ZSH_THEME_GIT_PROMPT_SHA_BEFORE$SHA$ZSH_THEME_GIT_PROMPT_SHA_AFTER"
+# }
+
+# # Formats prompt string for current git commit long SHA
+# function git_prompt_long_sha() {
+#   SHA=$(git rev-parse HEAD 2> /dev/null) && echo "$ZSH_THEME_GIT_PROMPT_SHA_BEFORE$SHA$ZSH_THEME_GIT_PROMPT_SHA_AFTER"
+# }
+
+# # Get the status of the working tree
+# git_prompt_status() {
+#   INDEX=$(git status --porcelain 2> /dev/null)
+#   STATUS=""
+#   if $(echo "$INDEX" | grep '^?? ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_UNTRACKED$STATUS"
+#   fi
+#   if $(echo "$INDEX" | grep '^A  ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_ADDED$STATUS"
+#   elif $(echo "$INDEX" | grep '^M  ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_ADDED$STATUS"
+#   fi
+#   if $(echo "$INDEX" | grep '^ M ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+#   elif $(echo "$INDEX" | grep '^AM ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+#   elif $(echo "$INDEX" | grep '^ T ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+#   fi
+#   if $(echo "$INDEX" | grep '^R  ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_RENAMED$STATUS"
+#   fi
+#   if $(echo "$INDEX" | grep '^ D ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_DELETED$STATUS"
+#   elif $(echo "$INDEX" | grep '^AD ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_DELETED$STATUS"
+#   fi
+#   if $(echo "$INDEX" | grep '^UU ' &> /dev/null); then
+#     STATUS="$ZSH_THEME_GIT_PROMPT_UNMERGED$STATUS"
+#   fi
+#   echo $STATUS
+# }
+
+
+# Prompt
+function prompt_scragz_precmd() {
+	# last command exit status smiley
+	PR_SMILEY='%(?,%F{green}☺%F{none},%F{red}☹%F{none})'
+	#PR_GIT=`git_prompt_info`
+	local ref=$(git symbolic-ref HEAD 2> /dev/null)
+
+  if (( $+functions[git-info] )); then
+    git-info
+  fi
+
+	# get max width
+	local width
+	(( width = ${COLUMNS} - 1 ))
+  #local prompt_size=${#${(%):-%n@%m  ${ref#refs/heads/} }}
+  local prompt_size=${#${(%):-%n@%m}}
+	local pwd_size=${#${(%):-%~}}
+	PR_PWDLEN=''
+	if [[ "$prompt_size + $pwd_size" -gt $width ]]; then
+		(( PR_PWDLEN = $width - $prompt_size ))
+	fi
+
+	# set a simple variable to show when in screen
+	if [[ -n "${WINDOW}" ]]; then
+	    SCREEN=" S:${WINDOW}"
+	else
+	    SCREEN=""
+	fi
+
+	# check if jobs are executing
+	if [[ $(jobs | wc -l) -gt 0 ]]; then
+	    JOBS=" J:%j"
+	else
+	    JOBS=""
+	fi
+}
+
+function prompt_scragz_setup() {
+  prompt_opts=(cr percent subst)
+
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd prompt_scragz_precmd
+
+  zstyle ':omz:completion' indicator '%B%F{red}...%f%b'
+  zstyle ':omz:prompt' vicmd '%F{yellow}❮%f%B%F{red}❮%f%b%F{red}❮%f'
+  zstyle ':omz:plugin:git:prompt' action ':%%B%F{yellow}%s%f%%b'
+  zstyle ':omz:plugin:git:prompt' added ' %%B%F{green}✚%f%%b'
+  zstyle ':omz:plugin:git:prompt' ahead ' %%B%F{yellow}⬆%f%%b'
+  zstyle ':omz:plugin:git:prompt' behind ' %%B%F{yellow}⬇%f%%b'
+  zstyle ':omz:plugin:git:prompt' branch ':%F{red}%b%f'
+  zstyle ':omz:plugin:git:prompt' deleted ' %%B%F{red}✖%f%%b'
+  zstyle ':omz:plugin:git:prompt' modified ' %%B%F{blue}✱%f%%b'
+  zstyle ':omz:plugin:git:prompt' renamed ' %%B%F{magenta}➜%f%%b'
+  zstyle ':omz:plugin:git:prompt' commit '%c'
+  zstyle ':omz:plugin:git:prompt' stashed ' %%B%F{cyan}✭%f%%b'
+  zstyle ':omz:plugin:git:prompt' unmerged ' %%B%F{yellow}═%f%%b'
+  zstyle ':omz:plugin:git:prompt' untracked ' %%B%F{white}◼%f%%b'
+  zstyle ':omz:plugin:git:prompt' prompt '%F{blue}git%f%b%s '
+  zstyle ':omz:plugin:git:prompt' rprompt '%A%B%S%a%d%m%r%U%u'
+
+  #PROMPT="
+# %n%{$FG[blue]%}@%{$FG[cyan]%}%m%{$FG[none]%} %{$FG[yellow]%}%$PR_PWDLEN<...<%~%<<%{$FG[none]%} $(git_prompt_info)%{$FG[none]%}
+# ${PR_SMILEY} %{$FG[none]%}"
+
+	#RPROMPT="%{$FG[yellow]%}!%h${SCREEN}${JOBS}%(?.. E:%?)%{$FG[none]%}"
+
+#  PROMPT='
+#%F{cyan}%1~%f${git_prompt_info} %(!.%B%F{red}#%f%b.%B%F{green}${PR_SMILEY}%f%b) '
+  PROMPT='
+%n%F{blue}@%F{cyan}%m%f %F{yellow}%$PR_PWDLEN<...<%~%<<
+${git_prompt_info}%(!.%B%F{red}#%f%b.%B%F{green}${PR_SMILEY}%f%b) '
+  RPROMPT='%F{yellow}!%h${SCREEN}${JOBS}%(?.. E:%?)%f${git_rprompt_info}'
+  SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
+}
+
+prompt_scragz_setup "$@"
+
