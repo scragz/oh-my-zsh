@@ -30,15 +30,16 @@ cdpath=(
 )
 
 infopath=(
-  $HOME/.tilde/share/info
-  $HOME/.tilde/opt/share/info
+  #$HOME/.tilde/share/info
+  #$HOME/.tilde/opt/share/info
   /usr/local/share/info
   /usr/share/info
 )
 
 manpath=(
-  $HOME/.tilde/share/man
-  $HOME/.tilde/opt/share/man
+  #$HOME/.tilde/share/man
+  #$HOME/.tilde/opt/share/man
+  $HOME/Developer/share/man
   /usr/local/share/man
   /usr/share/man
 )
@@ -48,8 +49,12 @@ for path_file in /etc/manpaths.d/*(.N); do
 done
 
 path=(
-  $HOME/.tilde/bin
-  $HOME/.tilde/opt/bin
+  #$HOME/.tilde/bin
+  #$HOME/.tilde/opt/bin
+  $HOME/bin
+  $HOME/Developer/bin
+  $HOME/Developer/share/npm/bin
+  $HOME/Developer/sbin
   /usr/local/bin
   /usr/local/sbin
   /usr/bin
@@ -58,9 +63,15 @@ path=(
   /sbin
 )
 
+if [[ -d $HOME/Developer/Cellar/python/2.7/bin ]]; then
+  path+=$HOME/Cellar/python/2.7/bin:$PATH
+fi
+
 for path_file in /etc/paths.d/*(.N); do
   path+=($(<$path_file))
 done
+
+export NODE_PATH="$HOME/Developer/lib/node"
 
 # Language
 export LANG="en_AU.UTF-8"
@@ -73,9 +84,10 @@ export LC_NUMERIC="$LANG"
 export LC_TIME="$LANG"
 
 # Editors
-export EDITOR="vim"
-export VISUAL="vim"
+export EDITOR="subl"
+export VISUAL="subl"
 export PAGER='less'
+export GIT_EDITOR='subl -w'
 
 # Grep
 if zstyle -t ':omz:environment:grep' color; then
@@ -113,3 +125,9 @@ if zstyle -t ':omz:environment:termcap' color; then
   export LESS_TERMCAP_us=$'\E[01;32m'      # begin underline
 fi
 
+# Configure/flags
+export CFLAGS="-I$HOME/Developer/include"
+export CPPFLAGS="-I$HOME/Developer/include"
+export CXXFLAGS="-I$HOME/Developer/include"
+export LDFLAGS="-L$HOME/Developer/lib"
+export CONFIGURE_ARGS="--with-cflags='$CFLAGS' --with-ldflags='$LDFLAGS'"
