@@ -49,18 +49,12 @@ for path_file in /etc/manpaths.d/*(.N); do
 done
 
 path=(
-  #$HOME/.tilde/bin
-  #$HOME/.tilde/opt/bin
-  $HOME/bin
-  $HOME/Developer/bin
+  $HOME/{bin,sbin}
+  $HOME/Developer/{bin,sbin}
   $HOME/Developer/share/npm/bin
-  $HOME/Developer/sbin
-  /usr/local/bin
-  /usr/local/sbin
-  /usr/bin
-  /bin
-  /usr/sbin
-  /sbin
+  /usr/local/{bin,sbin}
+  /usr/{bin,sbin}
+  /{bin,sbin}
 )
 
 if [[ -d $HOME/Developer/Cellar/python/2.7/bin ]]; then
@@ -74,14 +68,9 @@ done
 export NODE_PATH="$HOME/Developer/lib/node"
 
 # Language
-export LANG="en_AU.UTF-8"
-export LC_ALL="$LANG"
-export LC_COLLATE="$LANG"
-export LC_CTYPE="$LANG"
-export LC_MESSAGES="$LANG"
-export LC_MONETARY="$LANG"
-export LC_NUMERIC="$LANG"
-export LC_TIME="$LANG"
+if [[ -z "$LANG" ]]; then
+  eval "$(locale)"
+fi
 
 # Editors
 export EDITOR="subl"
