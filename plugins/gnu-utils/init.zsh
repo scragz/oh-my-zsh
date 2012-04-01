@@ -58,13 +58,5 @@ if (( $+commands[gdircolors] )); then
   function rehash() {
     hash -r "$@"
   }
-
-  # A sensible default for ls.
-  if zstyle -t ':omz:alias:ls' color && [[ -f "$HOME/.dir_colors" ]]; then
-    eval $(gdircolors "$HOME/.dir_colors")
-    alias ls='ls -hF --group-directories-first --color=auto'
-  else
-    alias ls='ls -hF --group-directories-first'
-  fi
 fi
 

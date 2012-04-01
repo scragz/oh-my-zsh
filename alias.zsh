@@ -8,14 +8,22 @@
 setopt CORRECT               # Correct commands.
 
 # The 'ls' Family
+
+if zstyle -t ':omz:alias:ls' color && [[ -f '~Developer/bin/gls' ]]; then
+  ls='~Developer/bin/gls'
+else
+  ls='ls'
+fi
+zstyle ':omz:alias:ls' color true
 if zstyle -t ':omz:alias:ls' color; then
   if [[ -f "$HOME/.dir_colors" ]] && (( $+commands[dircolors] )); then
     eval $(dircolors "$HOME/.dir_colors")
-    alias ls='ls -hF --group-directories-first --color=auto'
+    #alias ls="$ls -hF --group-directories-first --color=auto"
+    alias ls="$ls -hF --color=auto"
   else
     export CLICOLOR=1
     export LSCOLORS="exfxcxdxbxegedabagacad"
-    alias ls='ls -G -F'
+    alias ls="$ls -G -F"
   fi
 fi
 
@@ -55,6 +63,26 @@ alias rake='noglob rake'
 alias rm='nocorrect rm -i'
 alias scp='nocorrect scp'
 alias type='type -a'
+alias h='history'
+alias j='jobs -l'
+
+alias st='git st'
+# Detect the kind of ps
+    if [[ $OSTYPE == darwin* ]] ; then
+        _PSARGS="-a -w -w -x"
+    elif [[ $OSTYPE == linux* ]] ; then
+        _PSARGS="awx"
+    elif ps awx &>/dev/null ; then
+        _PSARGS="awx"
+    elif ps -A -f &>/dev/null ; then
+        # note not $OSTYPE == solaris* because it might be GNU ps
+        _PSARGS="-A -f"
+    else
+        _PSARGS="ax"
+    fi
+    eval "function psq { ps ${_PSARGS} | grep -i \$@ | grep -v grep ; }"
+    unset _PSARGS
+
 
 # Mac OS X
 if [[ "$OSTYPE" != darwin* ]]; then
